@@ -1,0 +1,56 @@
+#!/bin/zsh
+
+function create {
+	printf "Name:      "; read NAME
+	printf "Disk Size: "; read DISKSIZE
+	printf "Ram Size:  "; read RAMSIZE
+	printf "Core Num:  "; read CORENUM
+	ls $HOME/VMs/Isos/
+	printf "Iso:       "; read ISONAME
+	qemu-img create $HOME/VMs/Disks/$NAME.img $DISKSIZE
+	echo "RAMSIZE=$RAMSIZE;CORENUM=$CORENUM" > $HOME/VMs/.data/$NAME
+	qemu-system-x86_64 -cdrom $HOME/VMs/Isos/$ISONAME -m $RAMSIZE -smp cores=$CORENUM -boot d -hda $HOME/VMs/Disks/$NAME.img
+}
+function delete {
+	ls $HOME/VMs/Disks/
+	printf "Name: "; read NAME
+	rm $HOME/VMs/.data/$NAME $HOME/VMs/Disks/$NAME.img
+}
+
+function run {
+	ls $HOME/VMs/Disks/
+	printf "Name: "; read NAME
+	source $HOME/VMs/.data/$NAME
+	qemu-system-x86_64 -drive format=raw,file=$HOME/VMs/Disks/$NAME.img -m $RAMSIZE -smp cores=$CORENUM
+}
+
+function INSTALL {
+	cp oj /bin/oj
+}
+
+function REMOVE {
+	rm /bin/oj
+}
+
+function help {
+	echo "
+oj [OPTION]
+
+OPTIONS
+  new
+  del
+  run
+  INSTALL
+  REMOVE
+  -h
+"
+}
+
+case "$1" in
+	"new") create;;
+	"del") delete;;
+	"run") run;;
+	"INSTALL") INSTALL;;
+	"REMOVE") REMOVE;;
+	*) help;;
+esac
